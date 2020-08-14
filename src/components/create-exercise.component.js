@@ -1,12 +1,5 @@
 import React, { Component } from 'react';
 
-const getDateString = (date) => {
-  const year = date.getFullYear().toString();
-  const month = date.getMonth().toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
 
 export default class CreateExercise extends Component {
   constructor(props) {
@@ -30,10 +23,25 @@ export default class CreateExercise extends Component {
   }
 
   componentDidMount() {
-    this.setState({
-      users: ['test user'],
-      username: 'test user'
-    });
+    fetch('http://localhost:5000/users/', { method: 'GET' })
+      .then(res => res.json())
+      .then(data => {
+        const users = data.map(user => user.username);
+        this.setState({
+          users: users,
+          username: users[0]
+        });
+      })
+      .catch(err => console.error(err));
+  }
+
+  getDateString(date) {
+    console.log('in getDateString', date);
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   onChangeUserName(e) {
@@ -100,7 +108,17 @@ export default class CreateExercise extends Component {
 
     console.log(exercise);
 
-    window.location = '/';
+    fetch('http://localhost:5000/exercises/', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(exercise)
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.info(data);
+        window.location = '/';
+      })
+      .catch(err => console.error(err));
+
   }
 
   render() {
@@ -150,7 +168,7 @@ export default class CreateExercise extends Component {
               className="form-control"
               type="date"
               name="date"
-              value={getDateString(this.state.date)}
+              value={this.getDateString(this.state.date)}
               onChange={this.onChangeDate}
             />
           </div>
